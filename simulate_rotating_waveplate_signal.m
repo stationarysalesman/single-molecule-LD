@@ -1,4 +1,4 @@
-function [real_angle, computed_angle] = simulate_rotating_waveplate_signal(motor_freq, exposure_time, num_frames, amplitude, offset, noise_magnitude)
+function [real_angle, computed_angle] = simulate_rotating_waveplate_signal(motor_freq, exposure_time, num_frames, amplitude, offset, noise_magnitude, sample_limit)
 % Simulate an experiment wherein the motor rotates at motor_freq (Hz) and
 % the camera exposure time is given by exposure_time (s)
 % @param motor_freq: frequency of the DC motor (Hz)
@@ -19,7 +19,7 @@ function [real_angle, computed_angle] = simulate_rotating_waveplate_signal(motor
 
 T = exposure_time; % sampling period
 Fs = 1 / T; % sampling frequency
-L = num_frames; % number of samples obtained
+L = num_frames-sample_limit; % number of samples obtained
 t = (0:L-1)*T;
 
 % Generate the idealized cosine waveform, which is the convolution of the motor
@@ -37,7 +37,6 @@ S = (amplitude * cos(2*pi*motor_freq*4*t)+offset);
 % polarization of incident light. We will simulate other values, too.
 X = S + normrnd(0, noise_magnitude*amplitude, size(t));
 
-
 Y = fft(X);
 
 % compute single-sided spectrum from two-sided spectrum
@@ -48,7 +47,8 @@ f = Fs*(0:(L/2))/L;
 
 %plot(f(2:end),P1(2:end));
 [pk, idx] = max(P1(2:end));
-fourier_amplitude = P1(201);
+fundamental_idx = find(f == 4);
+fourier_amplitude = P1(fundamental_idx);
 
 % Auxilliary plotting
 %{
